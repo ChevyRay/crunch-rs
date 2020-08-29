@@ -120,3 +120,13 @@ I'm interested in finding out if Rust's asyc/.await could be
 somehow utilized to further improve the speed of the packer.
 It's already extremely fast, but faster is never a bad thing
 and, well... when in Rome, am I right?
+
+## Contributions
+I'm happy to take pull requests if you manage to find ways to make it faster
+or more memory-friendly. If you have a non-obvious speed improvement change,
+I'd appreciate if you supplied a benchmark with it so I can see the effect.
+
+Also, if anyone knows if and how this could be made even more efficient using
+concurrency, while we're in Rust, I'd love to hear it. I'm not experienced in
+concurrent programming, but it's something I'd like to get better at while I
+learn and use Rust more.
