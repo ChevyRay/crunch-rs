@@ -1,5 +1,5 @@
 [package]
-name = "rect_pack"
+name = "crunch"
 version = "0.1.0"
 authors = ["Chevy Ray Johnston <happytrash@gmail.com>"]
 edition = "2018"
