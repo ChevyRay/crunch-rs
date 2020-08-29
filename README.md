@@ -4,7 +4,7 @@ A packer for cramming lots of rectangles into a larger one, designed primarily w
 ## Example
 
 ```rust
-use crunch::*;
+use crunch::{pack, Rect, Item, Rotation};
 use std::iter::*;
 
 fn main() {
