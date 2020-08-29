@@ -26,8 +26,10 @@ use std::iter::*;
 ///     Item::new('H', 9, 2, Rotation::Allowed),
 /// ];
 /// 
-/// let (result, packed) = pack(rect, items);
-/// assert_eq!(result.is_ok(), true);
+/// let packed = match pack(rect, items) {
+///     Ok(all_packed) => all_packed,
+///     Err(some_packed) => some_packed,
+/// };
 /// 
 /// // Every item fits inside rect without overlapping any others.
 /// for (r, chr) in &packed {
