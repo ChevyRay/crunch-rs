@@ -9,7 +9,10 @@ use std::iter::*;
 
 fn main() {
 
+    // The 15x15 container we'll be packing our items into
     let container = Rect::of_size(15, 15);
+
+    // Our items to pack. The user-data here are chars, but could be any copyable type.
     let items = vec![
         Item::new('A', 2, 9, Rotation::Allowed),
         Item::new('B', 3, 8, Rotation::Allowed),
@@ -21,14 +24,18 @@ fn main() {
         Item::new('H', 9, 2, Rotation::Allowed),
     ];
 
+    // Pack the items, which gives us a result and a collection
     let (result, packed) = pack(container, items);
     assert_eq!(result, Ok(()));
 
+    // To display the results, let's create a 15x15 grid of '.' characters
     let mut data : Vec<char> =
         repeat(repeat('.').take(container.w).chain(once('\n')))
         .take(container.h)
         .flatten()
         .collect();
+    
+    // We can iterate through each (rect, data) pair that was packed
     for (r, chr) in &packed {
         for x in r.x..r.right() {
             for y in r.y..r.bottom() {
@@ -37,6 +44,8 @@ fn main() {
         }
     }
 
+    // The items packed very efficiently, using 90% of the 15x15 container's space.
+    // You'll notice that some ('H', for example) were able to rotate to fit.
     let text: String = data.iter().collect();
     println!("{}", text);
 
