@@ -2,7 +2,6 @@
 A packer for cramming lots of rectangles into a larger one, designed primarily with sprite packing in mind. Written in Rust.
 
 ## Example
-
 ```rust
 use crunch::{pack, Rect, Item, Rotation};
 use std::iter::*;
@@ -65,3 +64,51 @@ fn main() {
     //GGGGGGGGHHAA...
     //GGGGGGGG.......
 ```
+
+## How does it work?
+It's a bit tricky to explain, but the algorithm works with a *tree* of nodes.
+At the root is the initial container rectangle. When the first item is packed,
+it *splits* the container into 0-4 potential sub-containers, or *leaf nodes*.
+Every time we insert a new item, every leaf node is given a *score* for how
+efficiently (space used) it could pack the item, and then we then insert the
+item into the leaf that had the best score. That leaf is then split.
+
+The trick to the algorithm is in how the node tree splits itself. Basically, the
+item is packed into the top-left corner of the chosen leaf node it was assigned
+to be packed in. Then, we *collide* that rectangle down the tree, starting with
+the root. Every leaf node that overlaps the newly packed rectangle is then split,
+not just the node that the rectangle was packed in.
+
+The way the splitting works is that, given the node's overlap with the packed item,
+we create as many corner-fitting rectangles we can out of it. For example:
+
++-----+              ..+---+     .......
+| |   |              . |   |     .     .
++--   |              . |   |     +-----+
+|     | splits into: . |   | and |     |
+|     |              . |   |     |     |
+|     |              . |   |     |     |
++-----+              ..+---+     +-----+
+
+These split nodes are allowed to overlap, so we're not *sub-dividing* the root as
+we go, we're creating new potential packing *paths*. Because they are allowed to
+overlap, a node splitting might create a leaf that is *entirely contained* within
+another node higher up the tree. When this happens, we don't create that leaf node,
+since the node higher up on the tree has already fully claimed that space.
+
+As we pack more and more rectangles, these score-checks and collision-checks get
+more and more expensive, as the amount of leaf nodes expands quickly. You will often
+have 2x or more leaf nodes than total items you are packing.
+
+The tree structure is the thing that allows us to do this so efficiently, and also
+pre-sorting the items before packing so we pack the largest items first. When
+colliding, we can check collisions with the splits as we go, and each layer of
+the tree that we do this will prevent us from ever having to overlap-check huge
+amounts of leaf nodes. My earlier versions of this just scanned the whole flat
+list of leaf nodes and... it was much slower.
+
+## Asyncronous?
+I'm interested in finding out if Rust's asyc/.await could be
+somehow utilized to further improve the speed of the packer.
+It's already extremely fast, but faster is never a bad thing
+and, well... when in Rome, am I right?
