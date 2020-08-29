@@ -37,7 +37,7 @@ use std::iter::*;
 ///     }
 /// }
 /// ```
-pub fn pack<T, I>(into_rect: Rect, items: I) -> (Result<(),()>, PackedItems<T>)
+pub fn pack<T, I>(into_rect: Rect, items: I) -> Result<PackedItems<T>,PackedItems<T>> 
 where
     T: Copy,
     I: IntoIterator<Item = Item<T>>,
@@ -198,7 +198,7 @@ impl<T: Clone> Packer<T> {
     /// If you want to attempt to pack the same item list into several different
     /// `into_rect`, it is valid to call this function multiple times on the same
     /// `Packer`, and it will re-use its intermediary data structures.
-    pub fn pack(&mut self, into_rect: Rect) -> (Result<(),()>, PackedItems<T>) {   
+    pub fn pack(&mut self, into_rect: Rect) -> Result<PackedItems<T>,PackedItems<T>>  {   
         
         //start with one node that is the full size of the rect
         //reserve a deccent amount of room in the initial nodes vec
@@ -250,7 +250,7 @@ impl<T: Clone> Packer<T> {
             //if we failed to pack the item, return failure
             //and everything we did manage to pack
             if node_i == usize::MAX {
-                return (Err(()), PackedItems(packed));
+                return Err(PackedItems(packed));
             }
 
             //get the final rectangle where the item will be packed
@@ -264,7 +264,7 @@ impl<T: Clone> Packer<T> {
             packed.push((rect, item.data));
         }
 
-        (Ok(()), PackedItems(packed))
+        Ok(PackedItems(packed))
     }
 }
 

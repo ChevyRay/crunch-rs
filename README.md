@@ -17,7 +17,7 @@ fn main() {
     // The 15x15 container we'll be packing our items into
     let container = Rect::of_size(15, 15);
 
-    // Our items to pack. The user-data here are chars, but could be any copyable type.
+    // Our items to pack. The user-data here are chars, but could be any copyable type
     let items = vec![
         Item::new('A', 2, 9, Rotation::Allowed),
         Item::new('B', 3, 8, Rotation::Allowed),
@@ -29,9 +29,12 @@ fn main() {
         Item::new('H', 9, 2, Rotation::Allowed),
     ];
 
-    // Pack the items, which gives us a result and a collection
-    let (result, packed) = pack(container, items);
-    assert_eq!(result, Ok(()));
+    // Now we can try to pack all the items into this container
+    let result = pack(container, items);
+    let packed = match result {
+        Ok(all_packed) => all_packed,
+        Err(some_packed) => some_packed,
+    };
 
     // To display the results, let's create a 15x15 grid of '.' characters
     let mut data : Vec<char> =
