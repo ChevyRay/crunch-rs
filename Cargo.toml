@@ -5,7 +5,9 @@ authors = ["Chevy Ray Johnston <happytrash@gmail.com>"]
 edition = "2018"
 description = "A packer for cramming lots of rectangles into a larger one, designed primarily with sprite packing in mind."
 readme = "README.md"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+repository = "https://github.com/ChevyRay/crunch-rs"
+license = "MIT"
+license-file = "LICENSE"
+keywords = ["rectangle", "rect", "bin", "packer", "sprite", "atlas"]
 
 [dependencies]
