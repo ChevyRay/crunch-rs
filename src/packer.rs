@@ -90,7 +90,7 @@ impl<T> Default for Packer<T> {
     }
 }
 
-impl<T: Copy> Packer<T> {
+impl<T: Clone> Packer<T> {
     
     pub fn clear(&mut self) -> &mut Self {
         self.items_to_pack.clear();
@@ -231,7 +231,7 @@ impl<T: Copy> Packer<T> {
         //for &item_index in (&self.indices).into_iter().rev() {
         for ind in 0..self.indices.len() {
 
-            let item = self.items_to_pack[self.indices[ind]];
+            let item = self.items_to_pack[self.indices[ind]].clone();
 
             //find the best position to pack the item
             //if the item is rotated 90º, pack_w and pack_h will be swapped

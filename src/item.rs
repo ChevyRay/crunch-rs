@@ -6,7 +6,7 @@ pub enum Rotation {
 }
 
 /// An item to be packed by `Packer`.
-#[derive(Copy, Clone)]
+#[derive(Clone)]
 pub struct Item<T> {
     pub data: T,
     pub w: usize,
