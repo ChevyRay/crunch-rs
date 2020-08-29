@@ -1,5 +1,5 @@
 # Crunch
-A packer, written in Rust, for cramming lots of rectangles into a larger one. It is designed
+A rectangle packer, written in Rust, for cramming lots of rectangles into a larger one. It is designed
 primarily with sprite-packing in mind (eg. to create a sprite-atlas for rendering purposes).
 
 It is very fast, and very single-minded. It also seems to be able to pack *very* densely,
