@@ -6,7 +6,6 @@ edition = "2018"
 description = "A packer for cramming lots of rectangles into a larger one, designed primarily with sprite packing in mind."
 readme = "README.md"
 repository = "https://github.com/ChevyRay/crunch-rs"
-license = "MIT"
 license-file = "LICENSE"
 keywords = ["rectangle", "rect", "bin", "packer", "sprite", "atlas"]
 
