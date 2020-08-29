@@ -1,0 +1,10 @@
+[package]
+name = "rect_pack"
+version = "0.1.0"
+authors = ["Chevy Ray Johnston <happytrash@gmail.com>"]
+edition = "2018"
+description = "A packer for cramming lots of rectangles into a larger one, designed primarily with sprite packing in mind."
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
