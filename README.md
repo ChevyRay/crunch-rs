@@ -82,6 +82,7 @@ not just the node that the rectangle was packed in.
 The way the splitting works is that, given the node's overlap with the packed item,
 we create as many corner-fitting rectangles we can out of it. For example:
 
+```
 +-----+              ..+---+     .......
 | |   |              . |   |     .     .
 +--   |              . |   |     +-----+
@@ -89,6 +90,7 @@ we create as many corner-fitting rectangles we can out of it. For example:
 |     |              . |   |     |     |
 |     |              . |   |     |     |
 +-----+              ..+---+     +-----+
+```
 
 These split nodes are allowed to overlap, so we're not *sub-dividing* the root as
 we go, we're creating new potential packing *paths*. Because they are allowed to
