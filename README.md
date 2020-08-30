@@ -1,14 +1,10 @@
 # Crunch
 A rectangle packer, written in Rust, for cramming lots of rectangles into a larger one. It is designed
-primarily with sprite-packing in mind (eg. to create sprite-atlases or CSS image sheets).
+primarily with sprite-packing in mind (eg. to create sprite-atlases or CSS image sheets). Supports
+optional 90º rotation on a per-item basis.
 
 ![image of packed rectangles](examples/pack_images/packed.png)
-> 1200 rectangles packed with ~99% efficiency in ~100 ms
-
-It is very fast, and very single-minded. It also seems to be able to pack *very* densely,
-often surprising me at how much % of space it can fill.
-
-Item rotation is supported, and can be enabled on a per-item basis.
+> 1200 rectangles packed with ~99% coverage
 
 ## Example
 ```rust
