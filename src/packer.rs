@@ -146,12 +146,8 @@ impl<T: Clone> Packer<T> {
         let node = &self.nodes[node_index];
         match node.rect.contains(rect) {
             false => false,
-            true => match node.is_split {
-                false => true,
-                true => node.split.iter()
-                        .filter(|&&i| i > 0)
-                        .any(|&i| self.leaf_contains_rect(rect, i))
-            }
+            true => !node.is_split ||
+                    node.split.iter().any(|&i| i > 0 && self.leaf_contains_rect(rect, i))
         }
     }
 
