@@ -41,7 +41,7 @@ use std::iter::*;
 /// ```
 pub fn pack<T, I>(into_rect: Rect, items: I) -> Result<PackedItems<T>,PackedItems<T>> 
 where
-    T: Copy,
+    T: Clone,
     I: IntoIterator<Item = Item<T>>,
 {
     let mut packer = Packer::with_items(items);
@@ -54,7 +54,7 @@ where
 /// On success, returns the size of the container (a power of 2) and the packed items.
 pub fn pack_into_po2<T, I>(max_size: usize, items: I) -> Result<(usize, usize, PackedItems<T>), ()>
 where
-    T: Copy,
+    T: Clone,
     I: IntoIterator<Item = Item<T>>,
 {
     let mut packer = Packer::with_items(items);
