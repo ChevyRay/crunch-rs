@@ -48,6 +48,19 @@ where
     packer.pack(into_rect)
 }
 
+/// Attempts to pack the supplied items into the smallest power of 2 container
+/// it possibly can, while not exceeding the provided `max_size`.
+/// 
+/// On success, returns the size of the container (a power of 2) and the packed items.
+pub fn pack_into_po2<T, I>(max_size: usize, items: I) -> Result<(usize, usize, PackedItems<T>), ()>
+where
+    T: Copy,
+    I: IntoIterator<Item = Item<T>>,
+{
+    let mut packer = Packer::with_items(items);
+    packer.pack_into_po2(max_size)
+}
+
 /// A packer for items of type `Item<T>`.
 pub struct Packer<T> {
     items_to_pack: Vec<Item<T>>,
@@ -263,6 +276,41 @@ impl<T: Clone> Packer<T> {
         }
 
         Ok(PackedItems(packed))
+    }
+
+    /// Attempts to pack the supplied items into the smallest power of 2 container
+    /// it possibly can while not exceeding the provided `max_size`.
+    /// 
+    /// On success, returns the size of the container (a power of 2) and the packed items.
+    pub fn pack_into_po2(&mut self, max_size: usize) -> Result<(usize, usize, PackedItems<T>), ()> {
+
+        let min_area = self.items_to_pack.iter().map(|i| i.w * i.h).sum();
+
+        let mut size = 2;
+        while size * size < min_area {
+            size *= 2;
+        }
+        while size <= max_size {
+            let (w, h, result) = match self.pack(Rect::of_size(size, size)) {
+                Ok(packed) => (size, size, Ok(packed)),
+                Err(failed) => match size * 2 <= max_size {
+                    true => match self.pack(Rect::of_size(size * 2, size)) {
+                        Ok(packed) => (size * 2, size, Ok(packed)),
+                        Err(_) => match self.pack(Rect::of_size(size, size * 2)) {
+                            Ok(packed) => (size, size * 2, Ok(packed)),
+                            Err(failed) => (0, 0, Err(failed)),
+                        },
+                    }
+                    false => (0, 0, Err(failed)),
+                },
+            };
+            if let Ok(packed) = result {
+                return Ok((w, h, packed));
+            }
+            size *= 2;
+        }
+
+        Err(())
     }
 }
 
