@@ -74,6 +74,10 @@ fn main() {
     //GGGGGGGG.......
 ```
 
+If you are packing textures, you can also use the `pack_into_po2()` helper
+function, which will find the smallest power of 2 rectangle it can pack the
+items into (good if your rendering system cares about that).
+
 ## How does it work?
 It's a bit tricky to explain, but the algorithm works with a *tree* of nodes.
 At the root is the initial container rectangle. When the first item is packed,
