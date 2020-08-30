@@ -1,0 +1,9 @@
+[package]
+name = "pack_images"
+version = "0.1.0"
+authors = ["Chevy Ray Johnston <happytrash@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+crunch = { path = "../.." }
+image = "0.23.8"

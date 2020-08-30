@@ -2,6 +2,9 @@
 A rectangle packer, written in Rust, for cramming lots of rectangles into a larger one. It is designed
 primarily with sprite-packing in mind (eg. to create sprite-atlases or CSS image sheets).
 
+![image of packed rectangles](examples/pack_images/packed.png)
+> 1200 rectangles packed with ~99% efficiency in ~100 ms
+
 It is very fast, and very single-minded. It also seems to be able to pack *very* densely,
 often surprising me at how much % of space it can fill.
 
@@ -42,7 +45,7 @@ fn main() {
         .take(container.h)
         .flatten()
         .collect();
-    
+
     // We can iterate through each (rect, data) pair that was packed
     for (r, chr) in &packed {
         for x in r.x..r.right() {
