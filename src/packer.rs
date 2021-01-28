@@ -1,17 +1,17 @@
-use crate::{ Rect, Rotation, Item, PackedItems };
+use crate::{Item, PackedItems, Rect, Rotation};
 use std::iter::*;
 
 /// Attempts to tightly pack the supplied `items` into `into_rect`.
-/// 
+///
 /// Returns a collection of `PackedItems` on success, or all items
 /// that were packed before failure.
-/// 
+///
 /// Shorthand for:
 /// ```
 /// let mut packer = Packer::with_items(items);
 /// packer.pack(into_rect)
 /// ```
-/// 
+///
 /// Example usage:
 /// ```
 /// let rect = Rect::of_size(15, 15);
@@ -25,12 +25,12 @@ use std::iter::*;
 ///     Item::new('G', 8, 3, Rotation::Allowed),
 ///     Item::new('H', 9, 2, Rotation::Allowed),
 /// ];
-/// 
+///
 /// let packed = match pack(rect, items) {
 ///     Ok(all_packed) => all_packed,
 ///     Err(some_packed) => some_packed,
 /// };
-/// 
+///
 /// // Every item fits inside rect without overlapping any others.
 /// for (r, chr) in &packed {
 ///     assert_eq!(rect.contains(&r), true);
@@ -39,7 +39,7 @@ use std::iter::*;
 ///     }
 /// }
 /// ```
-pub fn pack<T, I>(into_rect: Rect, items: I) -> Result<PackedItems<T>,PackedItems<T>> 
+pub fn pack<T, I>(into_rect: Rect, items: I) -> Result<PackedItems<T>, PackedItems<T>>
 where
     T: Clone,
     I: IntoIterator<Item = Item<T>>,
@@ -50,7 +50,7 @@ where
 
 /// Attempts to pack the supplied items into the smallest power of 2 container
 /// it possibly can, while not exceeding the provided `max_size`.
-/// 
+///
 /// On success, returns the size of the container (a power of 2) and the packed items.
 pub fn pack_into_po2<T, I>(max_size: usize, items: I) -> Result<(usize, usize, PackedItems<T>), ()>
 where
@@ -69,7 +69,6 @@ pub struct Packer<T> {
 }
 
 impl<T> Packer<T> {
-
     /// Create a new, empty packer.
     pub fn new() -> Self {
         Self {
@@ -106,7 +105,6 @@ impl<T> Default for Packer<T> {
 }
 
 impl<T: Clone> Packer<T> {
-    
     pub fn clear(&mut self) -> &mut Self {
         self.items_to_pack.clear();
         self
@@ -127,7 +125,6 @@ impl<T: Clone> Packer<T> {
     //find the node that best fits a new rectangle of size (w, h)
     #[inline]
     fn find_best_node(&self, w: usize, h: usize, node_index: usize) -> (usize, Score) {
-
         let node = &self.nodes[node_index];
         //check if this node's branch could potentially hold the new rect
         match w <= node.rect.w && h <= node.rect.h {
@@ -139,17 +136,18 @@ impl<T: Clone> Packer<T> {
                     false => (node_index, Score::new(&node.rect, w, h)),
 
                     //the node has been split, so check its children for packing candidates
-                    true => node.split.iter()
-                        .filter(|&&i| i > 0)
-                        .fold((usize::MAX, Score::worst()), |(best_i, best_s), &child| {
+                    true => node.split.iter().filter(|&&i| i > 0).fold(
+                        (usize::MAX, Score::worst()),
+                        |(best_i, best_s), &child| {
                             let (i, s) = self.find_best_node(w, h, child);
                             match s.better_than(&best_s) {
                                 true => (i, s),
                                 false => (best_i, best_s),
                             }
-                        })
+                        },
+                    ),
                 }
-            },
+            }
         }
     }
 
@@ -159,18 +157,21 @@ impl<T: Clone> Packer<T> {
         let node = &self.nodes[node_index];
         match node.rect.contains(rect) {
             false => false,
-            true => !node.is_split ||
-                    node.split.iter().any(|&i| i > 0 && self.leaf_contains_rect(rect, i))
+            true => {
+                !node.is_split
+                    || node
+                        .split
+                        .iter()
+                        .any(|&i| i > 0 && self.leaf_contains_rect(rect, i))
+            }
         }
     }
 
     //split all nodes that overlap with this rectangle
     #[inline]
     fn split_tree(&mut self, rect: &Rect, node_index: usize) {
-
         //if the rectangle overlaps with this branch of the tree
         if self.nodes[node_index].rect.overlaps(rect) {
-
             //if the node is already split, recursively split into its child nodes
             if self.nodes[node_index].is_split {
                 let split = self.nodes[node_index].split;
@@ -201,16 +202,17 @@ impl<T: Clone> Packer<T> {
     /// Attempt to pack all the items into `into_rect`. The returned `PackedItems`
     /// will contain positions for all packed items on success, or just the items
     /// the packer was able to successfull pack before failing.
-    /// 
+    ///
     /// This function uses some internal intermediary collections, which is why
     /// it is mutable, so it cannot be called but it is valid to call it multiple times with different
-    /// `into_rect` values. 
-    /// 
+    /// `into_rect` values.
+    ///
     /// If you want to attempt to pack the same item list into several different
     /// `into_rect`, it is valid to call this function multiple times on the same
     /// `Packer`, and it will re-use its intermediary data structures.
-    pub fn pack(&mut self, into_rect: Rect) -> Result<PackedItems<T>,PackedItems<T>>  {   
-        
+    pub fn pack(&mut self, into_rect: Rect) -> Result<PackedItems<T>, PackedItems<T>> {
+        println!("packing: {}, {}", into_rect.w, into_rect.h);
+
         //start with one node that is the full size of the rect
         //reserve a deccent amount of room in the initial nodes vec
         self.nodes.clear();
@@ -220,7 +222,7 @@ impl<T: Clone> Packer<T> {
             is_split: false,
             split: [0; 4],
         });
-        
+
         //indices of items we need to pack, sorted by their area
         //the largest items should be packed first for best fits
         self.indices.clear();
@@ -241,7 +243,6 @@ impl<T: Clone> Packer<T> {
         //pack all items, longest sides -> shorted sides
         //for &item_index in (&self.indices).into_iter().rev() {
         for ind in 0..self.indices.len() {
-
             let item = self.items_to_pack[self.indices[ind]].clone();
 
             //find the best position to pack the item
@@ -280,18 +281,24 @@ impl<T: Clone> Packer<T> {
 
     /// Attempts to pack the supplied items into the smallest power of 2 container
     /// it possibly can while not exceeding the provided `max_size`.
-    /// 
+    ///
     /// On success, returns the size of the container (a power of 2) and the packed items.
     pub fn pack_into_po2(&mut self, max_size: usize) -> Result<(usize, usize, PackedItems<T>), ()> {
-
         let min_area = self.items_to_pack.iter().map(|i| i.w * i.h).sum();
 
         let mut size = 2;
-        while size * size < min_area {
+        while size * size * 2 < min_area {
             size *= 2;
         }
+
         while size <= max_size {
-            let (w, h, result) = match self.pack(Rect::of_size(size, size)) {
+            let result = if size * size >= min_area {
+                self.pack(Rect::of_size(size, size))
+            } else {
+                Err(PackedItems(Vec::new()))
+            };
+
+            let (w, h, result) = match result {
                 Ok(packed) => (size, size, Ok(packed)),
                 Err(failed) => match size * 2 <= max_size {
                     true => match self.pack(Rect::of_size(size * 2, size)) {
@@ -300,10 +307,11 @@ impl<T: Clone> Packer<T> {
                             Ok(packed) => (size, size * 2, Ok(packed)),
                             Err(failed) => (0, 0, Err(failed)),
                         },
-                    }
+                    },
                     false => (0, 0, Err(failed)),
                 },
             };
+
             if let Ok(packed) = result {
                 return Ok((w, h, packed));
             }
@@ -329,7 +337,6 @@ struct Score {
 }
 
 impl Score {
-
     /// Score how well `rect` fits into a rect of size `w` x `h`.
     #[inline]
     fn new(rect: &Rect, w: usize, h: usize) -> Self {
@@ -337,7 +344,7 @@ impl Score {
         let extra_y = rect.h - h;
         Self {
             area_fit: rect.area() - w * h,
-            short_fit: extra_x.min(extra_y)
+            short_fit: extra_x.min(extra_y),
         }
     }
 
@@ -353,6 +360,7 @@ impl Score {
     /// Returns `true` if this score is better than `other`.
     #[inline]
     fn better_than(&self, other: &Score) -> bool {
-        self.area_fit < other.area_fit || (self.area_fit == other.area_fit && self.short_fit < other.short_fit)
+        self.area_fit < other.area_fit
+            || (self.area_fit == other.area_fit && self.short_fit < other.short_fit)
     }
 }
