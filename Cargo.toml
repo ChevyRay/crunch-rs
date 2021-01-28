@@ -1,6 +1,6 @@
 [package]
 name = "crunch"
-version = "0.3.2"
+version = "0.3.3"
 authors = ["Chevy Ray Johnston <happytrash@gmail.com>"]
 edition = "2018"
 description = "A packer for cramming lots of rectangles into a larger one, designed primarily with sprite packing in mind."
