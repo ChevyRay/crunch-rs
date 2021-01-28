@@ -15,13 +15,12 @@ pub struct Item<T> {
 }
 
 impl<T> Item<T> {
-
     /// Creates a new packing item.
-    /// 
+    ///
     /// `w` `h`: the size of the item.
-    /// 
+    ///
     /// `rot`: controls whether the packer is allowed to rotate the item.
-    /// 
+    ///
     /// `data`: custom user-data you can associate with the item
     /// (for example, in an image packer, this might be a reference to the image)
     #[inline]

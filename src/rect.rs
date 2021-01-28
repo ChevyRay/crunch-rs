@@ -11,13 +11,11 @@ impl Rect {
     /// Create a new `Rect`.
     #[inline]
     pub fn new(x: usize, y: usize, w: usize, h: usize) -> Self {
-        Self {
-            x, y, w, h
-        }
+        Self { x, y, w, h }
     }
 
     /// Create a new `Rect` with the size `w` x `h`.
-    /// 
+    ///
     /// This is the same as calling `Rect::new(0, 0, w, h)`.
     #[inline]
     pub fn of_size(w: usize, h: usize) -> Self {
@@ -33,19 +31,19 @@ impl Rect {
     /// Returns true if `other` is fully contained inside `self`.
     #[inline]
     pub fn contains(&self, other: &Rect) -> bool {
-        other.x >= self.x &&
-        other.y >= self.y &&
-        other.right() <= self.right() &&
-        other.bottom() <= self.bottom()
+        other.x >= self.x
+            && other.y >= self.y
+            && other.right() <= self.right()
+            && other.bottom() <= self.bottom()
     }
 
     /// Returns true if `other` overlaps `self`.
     #[inline]
     pub fn overlaps(&self, other: &Rect) -> bool {
-        self.x < other.right() &&
-        self.y < other.bottom() &&
-        self.right() > other.x &&
-        self.bottom() > other.y
+        self.x < other.right()
+            && self.y < other.bottom()
+            && self.right() > other.x
+            && self.bottom() > other.y
     }
 
     /// The rectangle's top-left coordinates.
