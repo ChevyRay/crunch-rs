@@ -211,8 +211,6 @@ impl<T: Clone> Packer<T> {
     /// `into_rect`, it is valid to call this function multiple times on the same
     /// `Packer`, and it will re-use its intermediary data structures.
     pub fn pack(&mut self, into_rect: Rect) -> Result<PackedItems<T>, PackedItems<T>> {
-        println!("packing: {}, {}", into_rect.w, into_rect.h);
-
         //start with one node that is the full size of the rect
         //reserve a deccent amount of room in the initial nodes vec
         self.nodes.clear();
