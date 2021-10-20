@@ -12,3 +12,4 @@ Cargo.lock
 **/*.rs.bk
 
 .idea
+examples/pack_images/packed.png
