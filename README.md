@@ -4,7 +4,7 @@ primarily with sprite-packing in mind (eg. to create sprite-atlases or CSS image
 
 Supports 90º rotation on a per-item basis.
 
-![image of packed rectangles](examples/pack_images/packed.png)
+![image of packed rectangles](packed.png)
 > 1200 rectangles packed with ~99% coverage
 
 ## Example
