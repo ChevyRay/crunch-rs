@@ -1,9 +1,9 @@
-use crate::{Item, PackedItems, Rect, Rotation};
+use crate::{Item, Rect, Rotation};
 use std::iter::*;
 
 /// Attempts to tightly pack the supplied `items` into `into_rect`.
 ///
-/// Returns a collection of `PackedItems` on success, or all items
+/// Returns a collection of `Vec<(Rect, T)>` on success, or all items
 /// that were packed before failure.
 ///
 /// Shorthand for:
@@ -39,7 +39,7 @@ use std::iter::*;
 ///     }
 /// }
 /// ```
-pub fn pack<T, I>(into_rect: Rect, items: I) -> Result<PackedItems<T>, PackedItems<T>>
+pub fn pack<T, I>(into_rect: Rect, items: I) -> Result<Vec<(Rect, T)>, Vec<(Rect, T)>>
 where
     T: Clone,
     I: IntoIterator<Item = Item<T>>,
@@ -52,7 +52,7 @@ where
 /// it possibly can, while not exceeding the provided `max_size`.
 ///
 /// On success, returns the size of the container (a power of 2) and the packed items.
-pub fn pack_into_po2<T, I>(max_size: usize, items: I) -> Result<(usize, usize, PackedItems<T>), ()>
+pub fn pack_into_po2<T, I>(max_size: usize, items: I) -> Result<(usize, usize, Vec<(Rect, T)>), ()>
 where
     T: Clone,
     I: IntoIterator<Item = Item<T>>,
@@ -199,7 +199,7 @@ impl<T: Clone> Packer<T> {
         }
     }
 
-    /// Attempt to pack all the items into `into_rect`. The returned `PackedItems`
+    /// Attempt to pack all the items into `into_rect`. The returned `Vec<(Rect, T)>`
     /// will contain positions for all packed items on success, or just the items
     /// the packer was able to successfull pack before failing.
     ///
@@ -210,7 +210,7 @@ impl<T: Clone> Packer<T> {
     /// If you want to attempt to pack the same item list into several different
     /// `into_rect`, it is valid to call this function multiple times on the same
     /// `Packer`, and it will re-use its intermediary data structures.
-    pub fn pack(&mut self, into_rect: Rect) -> Result<PackedItems<T>, PackedItems<T>> {
+    pub fn pack(&mut self, into_rect: Rect) -> Result<Vec<(Rect, T)>, Vec<(Rect, T)>> {
         //start with one node that is the full size of the rect
         //reserve a deccent amount of room in the initial nodes vec
         self.nodes.clear();
@@ -260,7 +260,7 @@ impl<T: Clone> Packer<T> {
             //if we failed to pack the item, return failure
             //and everything we did manage to pack
             if node_i == usize::MAX {
-                return Err(PackedItems(packed));
+                return Err(packed);
             }
 
             //get the final rectangle where the item will be packed
@@ -274,14 +274,14 @@ impl<T: Clone> Packer<T> {
             packed.push((rect, item.data));
         }
 
-        Ok(PackedItems(packed))
+        Ok(packed)
     }
 
     /// Attempts to pack the supplied items into the smallest power of 2 container
     /// it possibly can while not exceeding the provided `max_size`.
     ///
     /// On success, returns the size of the container (a power of 2) and the packed items.
-    pub fn pack_into_po2(&mut self, max_size: usize) -> Result<(usize, usize, PackedItems<T>), ()> {
+    pub fn pack_into_po2(&mut self, max_size: usize) -> Result<(usize, usize, Vec<(Rect, T)>), ()> {
         let min_area = self.items_to_pack.iter().map(|i| i.w * i.h).sum();
 
         let mut size = 2;
@@ -293,7 +293,7 @@ impl<T: Clone> Packer<T> {
             let result = if size * size >= min_area {
                 self.pack(Rect::of_size(size, size))
             } else {
-                Err(PackedItems(Vec::new()))
+                Err(Vec::new())
             };
 
             let (w, h, result) = match result {
