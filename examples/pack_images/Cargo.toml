@@ -6,4 +6,4 @@ edition = "2018"
 
 [dependencies]
 crunch = { path = "../.." }
-image = "0.23.8"
+image = "0.24.5"
