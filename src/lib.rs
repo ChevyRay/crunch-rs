@@ -4,7 +4,7 @@ primarily with sprite-packing in mind (eg. to create sprite-atlases or CSS image
 
 Supports 90° rotation on a per-item basis.
 
-![image of packed rectangles](https://i.imgur.com/Xa3Oi9c.png)
+![image of packed rectangles](https://raw.githubusercontent.com/ChevyRay/crunch-rs/master/packed.png)
 > *1200 rectangles packed with ~99% coverage*
 
 ## Example
@@ -18,7 +18,7 @@ fn main() {
 
     // Our items to pack. The user-data here are chars,
     // but could be any copyable type
-    let items = vec![
+    let items = [
         Item::new('A', 2, 9, Rotation::Allowed),
         Item::new('B', 3, 8, Rotation::Allowed),
         Item::new('C', 4, 7, Rotation::Allowed),
