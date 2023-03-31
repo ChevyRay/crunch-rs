@@ -97,13 +97,13 @@ The way the splitting works is that, given the node's overlap with the packed it
 we create as many corner-fitting rectangles we can out of it. For example:
 
 ```text
-┌─┲━━━┓              ┌─┲━━━┓     ┌─────┐
-│ ┃   ┃              │ ┃   ┃     │     │
-┢━┛   ┃              │ ┃   ┃     ┢━━━━━┪
-┃     ┃ splits into: │ ┃   ┃ and ┃     ┃
-┃     ┃              │ ┃   ┃     ┃     ┃
-┃     ┃              │ ┃   ┃     ┃     ┃
-┗━━━━━┛              └─┺━━━┛     ┗━━━━━┛
+┏━┱───┐              ┌─┲━━━┓     ┌─────┐
+┃ ┃   │              │ ┃   ┃     │     │
+┡━┛   │              │ ┃   ┃     ┢━━━━━┪
+│     │ splits into: │ ┃   ┃ and ┃     ┃
+│     │              │ ┃   ┃     ┃     ┃
+│     │              │ ┃   ┃     ┃     ┃
+└─────┘              └─┺━━━┛     ┗━━━━━┛
 ```
 
 These split nodes are allowed to overlap, so we're not *sub-dividing* the root as
