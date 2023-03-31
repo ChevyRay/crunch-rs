@@ -71,7 +71,7 @@ pub struct Packer<T> {
 
 impl<T> Packer<T> {
     /// Create a new, empty packer.
-    pub fn new() -> Self {
+    pub const fn new() -> Self {
         Self {
             items_to_pack: Vec::new(),
             nodes: Vec::new(),
@@ -212,8 +212,8 @@ impl<T: Clone> Packer<T> {
     /// `into_rect`, it is valid to call this function multiple times on the same
     /// `Packer`, and it will re-use its intermediary data structures.
     pub fn pack(&mut self, into_rect: Rect) -> Result<Vec<PackedItem<T>>, Vec<PackedItem<T>>> {
-        //start with one node that is the full size of the rect
-        //reserve a deccent amount of room in the initial nodes vec
+        // start with one node that is the full size of the rect
+        // reserve a deccent amount of room in the initial nodes vec
         self.nodes.clear();
         self.nodes.reserve(self.items_to_pack.len() * 2);
         self.nodes.push(Node {
@@ -222,8 +222,8 @@ impl<T: Clone> Packer<T> {
             split: [0; 4],
         });
 
-        //indices of items we need to pack, sorted by their area
-        //the largest items should be packed first for best fits
+        // indices of items we need to pack, sorted by their area
+        // the largest items should be packed first for best fits
         self.indices.clear();
         self.indices.extend(0..self.items_to_pack.len());
         {
@@ -231,21 +231,20 @@ impl<T: Clone> Packer<T> {
             self.indices.sort_by(|&a, &b| {
                 let sort_a = items[a].sort_priority();
                 let sort_b = items[b].sort_priority();
-                sort_a.cmp(&sort_b)
+                sort_b.cmp(&sort_a)
             });
         }
-        self.indices.reverse();
 
-        //list of packed items we'll return (whether we succeed or fail)
+        // list of packed items we'll return (whether we succeed or fail)
         let mut packed = Vec::with_capacity(self.items_to_pack.len());
 
-        //pack all items, longest sides -> shorted sides
-        //for &item_index in (&self.indices).into_iter().rev() {
+        // pack all items, longest sides -> shorted sides
+        // for &item_index in (&self.indices).into_iter().rev() {
         for ind in 0..self.indices.len() {
             let item = self.items_to_pack[self.indices[ind]].clone();
 
-            //find the best position to pack the item
-            //if the item is rotated 90º, pack_w and pack_h will be swapped
+            // find the best position to pack the item
+            // if the item is rotated 90º, pack_w and pack_h will be swapped
             let mut pack_w = item.w;
             let mut pack_h = item.h;
             let (mut node_i, score) = self.find_best_node(item.w, item.h, 0);
@@ -258,20 +257,20 @@ impl<T: Clone> Packer<T> {
                 }
             }
 
-            //if we failed to pack the item, return failure
-            //and everything we did manage to pack
+            // if we failed to pack the item, return failure
+            // and everything we did manage to pack
             if node_i == usize::MAX {
                 return Err(packed);
             }
 
-            //get the final rectangle where the item will be packed
+            // get the final rectangle where the item will be packed
             let (node_x, node_y) = self.nodes[node_i].rect.top_left();
             let rect = Rect::new(node_x, node_y, pack_w, pack_h);
 
-            //split the tree on the new item's rect to create new packing branches
+            // split the tree on the new item's rect to create new packing branches
             self.split_tree(&rect, 0);
 
-            //add the item to the successfully packed list
+            // add the item to the successfully packed list
             packed.push(PackedItem {
                 data: item.data,
                 rect,
@@ -336,7 +335,7 @@ impl Score {
 
     /// The worst possible packing score.
     #[inline]
-    fn worst() -> Self {
+    const fn worst() -> Self {
         Self {
             area_fit: usize::MAX,
             short_fit: usize::MAX,
@@ -345,7 +344,7 @@ impl Score {
 
     /// Returns `true` if this score is better than `other`.
     #[inline]
-    fn better_than(&self, other: &Score) -> bool {
+    const fn better_than(&self, other: &Score) -> bool {
         self.area_fit < other.area_fit
             || (self.area_fit == other.area_fit && self.short_fit < other.short_fit)
     }

@@ -10,7 +10,7 @@ pub struct Rect {
 impl Rect {
     /// Create a new `Rect`.
     #[inline]
-    pub fn new(x: usize, y: usize, w: usize, h: usize) -> Self {
+    pub const fn new(x: usize, y: usize, w: usize, h: usize) -> Self {
         Self { x, y, w, h }
     }
 
@@ -18,19 +18,19 @@ impl Rect {
     ///
     /// This is the same as calling `Rect::new(0, 0, w, h)`.
     #[inline]
-    pub fn of_size(w: usize, h: usize) -> Self {
+    pub const fn of_size(w: usize, h: usize) -> Self {
         Self::new(0, 0, w, h)
     }
 
     /// The area of the rectangle.
     #[inline]
-    pub fn area(&self) -> usize {
+    pub const fn area(&self) -> usize {
         self.w * self.h
     }
 
     /// Returns true if `other` is fully contained inside `self`.
     #[inline]
-    pub fn contains(&self, other: &Rect) -> bool {
+    pub const fn contains(&self, other: &Rect) -> bool {
         other.x >= self.x
             && other.y >= self.y
             && other.right() <= self.right()
@@ -39,7 +39,7 @@ impl Rect {
 
     /// Returns true if `other` overlaps `self`.
     #[inline]
-    pub fn overlaps(&self, other: &Rect) -> bool {
+    pub const fn overlaps(&self, other: &Rect) -> bool {
         self.x < other.right()
             && self.y < other.bottom()
             && self.right() > other.x
@@ -48,19 +48,19 @@ impl Rect {
 
     /// The rectangle's top-left coordinates.
     #[inline]
-    pub fn top_left(&self) -> (usize, usize) {
+    pub const fn top_left(&self) -> (usize, usize) {
         (self.x, self.y)
     }
 
     /// The right edge of the rectangle.
     #[inline]
-    pub fn right(&self) -> usize {
+    pub const fn right(&self) -> usize {
         self.x + self.w
     }
 
     /// The bottom edge of the rectangle.
     #[inline]
-    pub fn bottom(&self) -> usize {
+    pub const fn bottom(&self) -> usize {
         self.y + self.h
     }
 
