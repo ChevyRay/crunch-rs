@@ -1,3 +1,4 @@
+use crate::item::{PackedItem, PackedItems};
 use crate::{Item, Rect, Rotation};
 use std::iter::*;
 
@@ -39,7 +40,7 @@ use std::iter::*;
 ///     }
 /// }
 /// ```
-pub fn pack<T, I>(into_rect: Rect, items: I) -> Result<Vec<(Rect, T)>, Vec<(Rect, T)>>
+pub fn pack<T, I>(into_rect: Rect, items: I) -> Result<Vec<PackedItem<T>>, Vec<PackedItem<T>>>
 where
     T: Clone,
     I: IntoIterator<Item = Item<T>>,
@@ -52,7 +53,7 @@ where
 /// it possibly can, while not exceeding the provided `max_size`.
 ///
 /// On success, returns the size of the container (a power of 2) and the packed items.
-pub fn pack_into_po2<T, I>(max_size: usize, items: I) -> Result<(usize, usize, Vec<(Rect, T)>), ()>
+pub fn pack_into_po2<T, I>(max_size: usize, items: I) -> Result<PackedItems<T>, ()>
 where
     T: Clone,
     I: IntoIterator<Item = Item<T>>,
@@ -126,28 +127,28 @@ impl<T: Clone> Packer<T> {
     #[inline]
     fn find_best_node(&self, w: usize, h: usize, node_index: usize) -> (usize, Score) {
         let node = &self.nodes[node_index];
-        //check if this node's branch could potentially hold the new rect
-        match w <= node.rect.w && h <= node.rect.h {
-            false => (usize::MAX, Score::worst()),
-            true => {
-                //check if the node is a branch or a leaf node
-                match node.is_split {
-                    //the node hasn't been split, so it is a packing candidate
-                    false => (node_index, Score::new(&node.rect, w, h)),
 
-                    //the node has been split, so check its children for packing candidates
-                    true => node.split.iter().filter(|&&i| i > 0).fold(
-                        (usize::MAX, Score::worst()),
-                        |(best_i, best_s), &child| {
-                            let (i, s) = self.find_best_node(w, h, child);
-                            match s.better_than(&best_s) {
-                                true => (i, s),
-                                false => (best_i, best_s),
-                            }
-                        },
-                    ),
-                }
+        // check if this node's branch could potentially hold the new rect
+        if w <= node.rect.w && h <= node.rect.h {
+            // check if the node is a branch or a leaf node
+            if node.is_split {
+                // for split nodes, recursively search each branch and find the best node
+                node.split.iter().filter(|&&i| i > 0).fold(
+                    (usize::MAX, Score::worst()),
+                    |(best_i, best_s), &child| {
+                        let (i, s) = self.find_best_node(w, h, child);
+                        if s.better_than(&best_s) {
+                            (i, s)
+                        } else {
+                            (best_i, best_s)
+                        }
+                    },
+                )
+            } else {
+                (node_index, Score::new(&node.rect, w, h))
             }
+        } else {
+            (usize::MAX, Score::worst())
         }
     }
 
@@ -201,7 +202,7 @@ impl<T: Clone> Packer<T> {
 
     /// Attempt to pack all the items into `into_rect`. The returned `Vec<(Rect, T)>`
     /// will contain positions for all packed items on success, or just the items
-    /// the packer was able to successfull pack before failing.
+    /// the packer was able to successfully pack before failing.
     ///
     /// This function uses some internal intermediary collections, which is why
     /// it is mutable, so it cannot be called but it is valid to call it multiple times with different
@@ -210,7 +211,7 @@ impl<T: Clone> Packer<T> {
     /// If you want to attempt to pack the same item list into several different
     /// `into_rect`, it is valid to call this function multiple times on the same
     /// `Packer`, and it will re-use its intermediary data structures.
-    pub fn pack(&mut self, into_rect: Rect) -> Result<Vec<(Rect, T)>, Vec<(Rect, T)>> {
+    pub fn pack(&mut self, into_rect: Rect) -> Result<Vec<PackedItem<T>>, Vec<PackedItem<T>>> {
         //start with one node that is the full size of the rect
         //reserve a deccent amount of room in the initial nodes vec
         self.nodes.clear();
@@ -271,7 +272,10 @@ impl<T: Clone> Packer<T> {
             self.split_tree(&rect, 0);
 
             //add the item to the successfully packed list
-            packed.push((rect, item.data));
+            packed.push(PackedItem {
+                data: item.data,
+                rect,
+            })
         }
 
         Ok(packed)
@@ -281,7 +285,7 @@ impl<T: Clone> Packer<T> {
     /// it possibly can while not exceeding the provided `max_size`.
     ///
     /// On success, returns the size of the container (a power of 2) and the packed items.
-    pub fn pack_into_po2(&mut self, max_size: usize) -> Result<(usize, usize, Vec<(Rect, T)>), ()> {
+    pub fn pack_into_po2(&mut self, max_size: usize) -> Result<PackedItems<T>, ()> {
         let min_area = self.items_to_pack.iter().map(|i| i.w * i.h).sum();
 
         let mut size = 2;
@@ -290,28 +294,12 @@ impl<T: Clone> Packer<T> {
         }
 
         while size <= max_size {
-            let result = if size * size >= min_area {
-                self.pack(Rect::of_size(size, size))
-            } else {
-                Err(Vec::new())
-            };
-
-            let (w, h, result) = match result {
-                Ok(packed) => (size, size, Ok(packed)),
-                Err(failed) => match size * 2 <= max_size {
-                    true => match self.pack(Rect::of_size(size * 2, size)) {
-                        Ok(packed) => (size * 2, size, Ok(packed)),
-                        Err(_) => match self.pack(Rect::of_size(size, size * 2)) {
-                            Ok(packed) => (size, size * 2, Ok(packed)),
-                            Err(failed) => (0, 0, Err(failed)),
-                        },
-                    },
-                    false => (0, 0, Err(failed)),
-                },
-            };
-
-            if let Ok(packed) = result {
-                return Ok((w, h, packed));
+            for (w, h) in [(size, size), (size * 2, size), (size, size * 2)] {
+                if w <= max_size && h <= max_size && w * h >= min_area {
+                    if let Ok(items) = self.pack(Rect::of_size(w, h)) {
+                        return Ok(PackedItems { w, h, items });
+                    }
+                }
             }
             size *= 2;
         }

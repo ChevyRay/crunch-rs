@@ -1,9 +1,8 @@
 extern crate image;
-use crunch::{Item, Rect, Rotation};
-use image::{RgbaImage, ImageBuffer, GenericImageView, GenericImage};
+use crunch::{Item, PackedItem, PackedItems, Rotation};
+use image::{GenericImage, GenericImageView, ImageBuffer, RgbaImage};
 
 fn main() {
-
     // The images we'll be loading
     let img_paths = [
         "img/img1.png",
@@ -37,32 +36,43 @@ fn main() {
     println!("loading images...");
 
     // Load all the files into RGBA images
-    let images: Vec<RgbaImage> = img_paths.iter().map(|file| {
-        let img = image::open(file).unwrap().to_rgba8();
-        println!("\tloaded: `{}` ({} x {})", file, img.width(), img.height());
-        img
-    }).collect();
+    let images: Vec<RgbaImage> = img_paths
+        .iter()
+        .map(|file| {
+            let img = image::open(file).unwrap().to_rgba8();
+            println!("\tloaded: `{}` ({} x {})", file, img.width(), img.height());
+            img
+        })
+        .collect();
 
     // Create a packing item for every image using its size
-    let items: Vec<Item<&RgbaImage>> = images.iter().enumerate().map(|(i, img)| {
-        Item::new(img, img.width() as usize, img.height() as usize, Rotation::None)
-    }).collect();
+    let items: Vec<Item<&RgbaImage>> = images
+        .iter()
+        .map(|img| {
+            Item::new(
+                img,
+                img.width() as usize,
+                img.height() as usize,
+                Rotation::None,
+            )
+        })
+        .collect();
 
     println!("packing {} images...", items.len());
 
     // Try packing all the rectangles
     match crunch::pack_into_po2(1024, items) {
-        Ok((w, h, packed)) => {
-
+        Ok(PackedItems { w, h, items }) => {
             println!("images packed into ({} x {}) rect", w, h);
 
             // Create a target atlas image to draw the packed images onto
-            let mut atlas: RgbaImage = ImageBuffer::from_fn(w as u32, h as u32, |_, _| image::Rgba([0, 0, 0, 0]));
+            let mut atlas: RgbaImage =
+                ImageBuffer::from_fn(w as u32, h as u32, |_, _| image::Rgba([0, 0, 0, 0]));
 
             // Copy all the packed images onto the target atlas
-            for (rect, img) in &packed {
-                let view = img.view(0, 0, img.width(), img.height());
-                atlas.copy_from(&view, rect.x as u32, rect.y as u32);
+            for PackedItem { data, rect } in items {
+                let view = data.view(0, 0, data.width(), data.height());
+                _ = atlas.copy_from(&view, rect.x as u32, rect.y as u32);
             }
 
             println!("exporting `packed.png`...");
