@@ -69,22 +69,10 @@ impl Rect {
         let (self_r, self_b) = (self.right(), self.bottom());
         let (rect_r, rect_b) = (rect.right(), rect.bottom());
         [
-            match rect.x > self.x {
-                true => Some(Self::new(self.x, self.y, rect.x - self.x, self.h)),
-                false => None,
-            },
-            match rect_r < self_r {
-                true => Some(Self::new(rect_r, self.y, self_r - rect_r, self.h)),
-                false => None,
-            },
-            match rect.y > self.y {
-                true => Some(Self::new(self.x, self.y, self.w, rect.y - self.y)),
-                false => None,
-            },
-            match rect_b < self_b {
-                true => Some(Self::new(self.x, rect_b, self.w, self_b - rect_b)),
-                false => None,
-            },
+            (rect.x > self.x).then(|| Self::new(self.x, self.y, rect.x - self.x, self.h)),
+            (rect_r < self_r).then(|| Self::new(rect_r, self.y, self_r - rect_r, self.h)),
+            (rect.y > self.y).then(|| Self::new(self.x, self.y, self.w, rect.y - self.y)),
+            (rect_b < self_b).then(|| Self::new(self.x, rect_b, self.w, self_b - rect_b)),
         ]
     }
 }
