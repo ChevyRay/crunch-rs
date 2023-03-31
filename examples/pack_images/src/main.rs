@@ -3,8 +3,10 @@ use crunch::{Item, PackedItem, PackedItems, Rotation};
 use image::{GenericImage, Rgba, RgbaImage};
 
 fn main() {
-    // The images we'll be loading
-    let img_paths = [
+    println!("loading images...");
+
+    // Load all the files into RGBA images
+    let items: [Item<RgbaImage>; 26] = [
         "img/img1.png",
         "img/img2.png",
         "img/img3.png",
@@ -31,32 +33,13 @@ fn main() {
         "img/img16.png",
         "img/img17.png",
         "img/img17.png",
-    ];
-
-    println!("loading images...");
-
-    // Load all the files into RGBA images
-    let images: Vec<RgbaImage> = img_paths
-        .iter()
-        .map(|file| {
-            let img = image::open(file).unwrap().to_rgba8();
-            println!("\tloaded: `{}` ({} x {})", file, img.width(), img.height());
-            img
-        })
-        .collect();
-
-    // Create a packing item for every image using its size
-    let items: Vec<Item<&RgbaImage>> = images
-        .iter()
-        .map(|img| {
-            Item::new(
-                img,
-                img.width() as usize,
-                img.height() as usize,
-                Rotation::None,
-            )
-        })
-        .collect();
+    ]
+    .map(|file| {
+        let img = image::open(file).unwrap().to_rgba8();
+        let (w, h) = (img.width() as usize, img.height() as usize);
+        println!("\tloaded: `{}` ({} x {})", file, w, h);
+        Item::new(img, w, h, Rotation::None)
+    });
 
     println!("packing {} images...", items.len());
 
@@ -70,7 +53,9 @@ fn main() {
 
             // Copy all the packed images onto the target atlas
             for PackedItem { data, rect } in items {
-                atlas.copy_from(data, rect.x as u32, rect.y as u32).unwrap();
+                atlas
+                    .copy_from(&data, rect.x as u32, rect.y as u32)
+                    .unwrap();
             }
 
             println!("exporting `packed.png`...");
