@@ -9,12 +9,16 @@ use std::iter::*;
 ///
 /// Shorthand for:
 /// ```
+/// # use crunch::{Rect, Packer, Item};
+/// # let items: Vec<Item<char>> = Vec::new();
+/// # let into_rect = Rect::of_size(1024, 1024);
 /// let mut packer = Packer::with_items(items);
-/// packer.pack(into_rect)
+/// packer.pack(into_rect);
 /// ```
 ///
 /// Example usage:
 /// ```
+/// # use crunch::{Rect, Item, Rotation, pack, PackedItems};
 /// let rect = Rect::of_size(15, 15);
 /// let items = vec![
 ///     Item::new('A', 2, 9, Rotation::Allowed),
@@ -33,10 +37,10 @@ use std::iter::*;
 /// };
 ///
 /// // Every item fits inside rect without overlapping any others.
-/// for (r, chr) in &packed {
-///     assert_eq!(rect.contains(&r), true);
-///     for (r2, chr2) in &packed {
-///         assert_eq!(chr != chr2 && r.overlaps(r2), false);
+/// for a in &packed {
+///     assert!(rect.contains(&a.rect));
+///     for b in &packed {
+///         assert!(a.data == b.data || !a.rect.overlaps(&b.rect));
 ///     }
 /// }
 /// ```

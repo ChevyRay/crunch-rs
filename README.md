@@ -4,7 +4,7 @@ primarily with sprite-packing in mind (eg. to create sprite-atlases or CSS image
 
 Supports 90º rotation on a per-item basis.
 
-![image of packed rectangles](./packed.png)
+![image of packed rectangles](https://i.imgur.com/Xa3Oi9c.png)
 > 1200 rectangles packed with ~99% coverage
 
 ## Example
@@ -13,11 +13,11 @@ use crunch::{pack, Rect, Item, Rotation};
 use std::iter::*;
 
 fn main() {
-
     // The 15x15 container we'll be packing our items into
     let container = Rect::of_size(15, 15);
 
-    // Our items to pack. The user-data here are chars, but could be any copyable type
+    // Our items to pack. The user-data here are chars,
+    // but could be any copyable type
     let items = vec![
         Item::new('A', 2, 9, Rotation::Allowed),
         Item::new('B', 3, 8, Rotation::Allowed),
@@ -39,39 +39,40 @@ fn main() {
     // To display the results, let's create a 15x15 grid of '.' characters
     let mut data : Vec<char> =
         repeat(repeat('.').take(container.w).chain(once('\n')))
-        .take(container.h)
-        .flatten()
-        .collect();
+            .take(container.h)
+            .flatten()
+            .collect();
 
     // We can iterate through each (rect, data) pair that was packed
-    for (r, chr) in &packed {
-        for x in r.x..r.right() {
-            for y in r.y..r.bottom() {
-                data[y * (container.w + 1) + x] = *chr;
+    for item in &packed {
+        for x in item.rect.x..item.rect.right() {
+            for y in item.rect.y..item.rect.bottom() {
+                data[y * (container.w + 1) + x] = item.data;
             }
         }
     }
 
-    // The items packed very efficiently, using 90% of the 15x15 container's space.
-    // You'll notice that some ('H', for example) were able to rotate to fit.
-    let text: String = data.iter().collect();
-    println!("{}", text);
+    // The items packed very efficiently, using 90% of the 15x15
+    // container's space. You'll notice that some ('H', for example)
+    // were able to rotate to fit.
+    println!("{}", String::from_iter(data));
 
-    //EEEEEEDDDDDDBBB
-    //EEEEEEDDDDDDBBB
-    //EEEEEEDDDDDDBBB
-    //EEEEEEDDDDDDBBB
-    //EEEEEEDDDDDDBBB
-    //FFFFCCCCHHAABBB
-    //FFFFCCCCHHAABBB
-    //FFFFCCCCHHAABBB
-    //FFFFCCCCHHAA...
-    //FFFFCCCCHHAA...
-    //FFFFCCCCHHAA...
-    //FFFFCCCCHHAA...
-    //GGGGGGGGHHAA...
-    //GGGGGGGGHHAA...
-    //GGGGGGGG.......
+    // EEEEEEDDDDDDBBB
+    // EEEEEEDDDDDDBBB
+    // EEEEEEDDDDDDBBB
+    // EEEEEEDDDDDDBBB
+    // EEEEEEDDDDDDBBB
+    // FFFFCCCCHHAABBB
+    // FFFFCCCCHHAABBB
+    // FFFFCCCCHHAABBB
+    // FFFFCCCCHHAA...
+    // FFFFCCCCHHAA...
+    // FFFFCCCCHHAA...
+    // FFFFCCCCHHAA...
+    // GGGGGGGGHHAA...
+    // GGGGGGGGHHAA...
+    // GGGGGGGG.......
+}
 ```
 
 If you are packing textures, you can also use the `pack_into_po2()` helper
