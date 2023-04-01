@@ -135,22 +135,21 @@ impl<T: Clone> Packer<T> {
         // check if this node's branch could potentially hold the new rect
         if w <= node.rect.w && h <= node.rect.h {
             // check if the node is a branch or a leaf node
-            match node.split {
-                Some(split) => {
-                    // for split nodes, recursively search each branch and find the best node
-                    split.iter().filter(|&&i| i > 0).fold(
-                        (usize::MAX, Score::worst()),
-                        |(best_i, best_s), &child| {
-                            let (i, s) = self.find_best_node(w, h, child);
-                            if s.better_than(&best_s) {
-                                (i, s)
-                            } else {
-                                (best_i, best_s)
-                            }
-                        },
-                    )
-                }
-                None => (node_index, Score::new(&node.rect, w, h)),
+            if node.is_split {
+                // for split nodes, recursively search each branch and find the best node
+                node.split.iter().filter(|&&i| i > 0).fold(
+                    (usize::MAX, Score::worst()),
+                    |(best_i, best_s), &child| {
+                        let (i, s) = self.find_best_node(w, h, child);
+                        if s.better_than(&best_s) {
+                            (i, s)
+                        } else {
+                            (best_i, best_s)
+                        }
+                    },
+                )
+            } else {
+                (node_index, Score::new(&node.rect, w, h))
             }
         } else {
             (usize::MAX, Score::worst())
@@ -161,14 +160,16 @@ impl<T: Clone> Packer<T> {
     #[inline]
     fn leaf_contains_rect(&self, rect: &Rect, node_index: usize) -> bool {
         let node = &self.nodes[node_index];
-        if node.rect.contains(rect) {
-            if let Some(split) = node.split {
-                return split
-                    .iter()
-                    .any(|&i| i > 0 && self.leaf_contains_rect(rect, i));
+        match node.rect.contains(rect) {
+            false => false,
+            true => {
+                !node.is_split
+                    || node
+                        .split
+                        .iter()
+                        .any(|&i| i > 0 && self.leaf_contains_rect(rect, i))
             }
         }
-        false
     }
 
     //split all nodes that overlap with this rectangle
@@ -177,24 +178,28 @@ impl<T: Clone> Packer<T> {
         //if the rectangle overlaps with this branch of the tree
         if self.nodes[node_index].rect.overlaps(rect) {
             //if the node is already split, recursively split into its child nodes
-            if let Some(split) = self.nodes[node_index].split {
-                for i in split.iter().copied().filter(|&i| i > 0) {
+            if self.nodes[node_index].is_split {
+                let split = self.nodes[node_index].split;
+                for i in split.iter().cloned().filter(|&i| i > 0) {
                     self.split_tree(rect, i);
                 }
             } else {
                 //split the rect into 0-4 sub-rects and make a new node out of each
+                self.nodes[node_index].is_split = true;
                 let rects = self.nodes[node_index].rect.split(rect);
-                self.nodes[node_index].split = Some(rects.map(|rect| {
-                    rect.and_then(|rect| {
+                for i in 0..rects.len() {
+                    if let Some(r) = &rects[i] {
                         //only add the child rect if no other leaf node contains it
-                        (!self.leaf_contains_rect(&rect, 0)).then(|| {
-                            let ind = self.nodes.len();
-                            self.nodes.push(Node { rect, split: None });
-                            ind
-                        })
-                    })
-                    .unwrap_or(0)
-                }));
+                        if !self.leaf_contains_rect(r, 0) {
+                            self.nodes[node_index].split[i] = self.nodes.len();
+                            self.nodes.push(Node {
+                                rect: *r,
+                                is_split: false,
+                                split: [0; 4],
+                            });
+                        }
+                    }
+                }
             }
         }
     }
@@ -217,7 +222,8 @@ impl<T: Clone> Packer<T> {
         self.nodes.reserve(self.items_to_pack.len() * 2);
         self.nodes.push(Node {
             rect: into_rect,
-            split: None,
+            is_split: false,
+            split: [0; 4],
         });
 
         // indices of items we need to pack, sorted by their area
@@ -308,7 +314,8 @@ impl<T: Clone> Packer<T> {
 /// A branch of the packing tree, `split` are indices that point to other nodes.
 struct Node {
     rect: Rect,
-    split: Option<[usize; 4]>,
+    is_split: bool,
+    split: [usize; 4],
 }
 
 /// The packer's way of scoring how well a rect fits into another rect.
