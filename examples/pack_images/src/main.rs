@@ -37,7 +37,7 @@ fn main() {
     .map(|file| {
         let img = image::open(file).unwrap().to_rgba8();
         let (w, h) = (img.width() as usize, img.height() as usize);
-        println!("\tloaded: `{}` ({} x {})", file, w, h);
+        println!("\tloaded: `{file}` ({w} x {h})");
         Item::new(img, w, h, Rotation::None)
     });
 
@@ -46,7 +46,7 @@ fn main() {
     // Try packing all the rectangles
     match crunch::pack_into_po2(1024, items) {
         Ok(PackedItems { w, h, items }) => {
-            println!("images packed into ({} x {}) rect", w, h);
+            println!("images packed into ({w} x {h}) rect");
 
             // Create a target atlas image to draw the packed images onto
             let mut atlas = RgbaImage::from_pixel(w as u32, h as u32, Rgba([0, 0, 0, 0]));

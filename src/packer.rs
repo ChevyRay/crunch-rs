@@ -59,7 +59,7 @@ where
 /// it possibly can, while not exceeding the provided `max_size`.
 ///
 /// On success, returns the size of the container (a power of 2) and the packed items.
-pub fn pack_into_po2<'a, T: 'a, I>(max_size: usize, items: I) -> Result<PackedItems<'a, T>, ()>
+pub fn pack_into_po2<'a, T: 'a, I>(max_size: usize, items: I) -> Option<PackedItems<'a, T>>
 where
     I: IntoIterator<Item = Item<&'a T>>,
 {
@@ -181,8 +181,8 @@ impl<'a, T: 'a> Packer<'a, T> {
                 //split the rect into 0-4 sub-rects and make a new node out of each
                 nodes[node_index].is_split = true;
                 let rects = nodes[node_index].rect.split(rect);
-                for i in 0..rects.len() {
-                    if let Some(r) = &rects[i] {
+                for (i, r) in rects.iter().enumerate() {
+                    if let Some(r) = r {
                         //only add the child rect if no other leaf node contains it
                         if !Self::leaf_contains_rect(r, nodes, 0) {
                             nodes[node_index].split[i] = nodes.len();
@@ -275,7 +275,7 @@ impl<'a, T: 'a> Packer<'a, T> {
             packed.push(PackedItem {
                 data: item.data,
                 rect,
-            })
+            });
         }
 
         Ok(packed)
@@ -285,7 +285,7 @@ impl<'a, T: 'a> Packer<'a, T> {
     /// it possibly can while not exceeding the provided `max_size`.
     ///
     /// On success, returns the size of the container (a power of 2) and the packed items.
-    pub fn pack_into_po2(&mut self, max_size: usize) -> Result<PackedItems<'a, T>, ()> {
+    pub fn pack_into_po2(&mut self, max_size: usize) -> Option<PackedItems<'a, T>> {
         let min_area = self.items_to_pack.iter().map(|i| i.w * i.h).sum();
 
         let mut size = 2;
@@ -297,14 +297,14 @@ impl<'a, T: 'a> Packer<'a, T> {
             for (w, h) in [(size, size), (size * 2, size), (size, size * 2)] {
                 if w <= max_size && h <= max_size && w * h >= min_area {
                     if let Ok(items) = self.pack(Rect::of_size(w, h)) {
-                        return Ok(PackedItems { w, h, items });
+                        return Some(PackedItems { w, h, items });
                     }
                 }
             }
             size *= 2;
         }
 
-        Err(())
+        None
     }
 }
 

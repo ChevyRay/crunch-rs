@@ -12,67 +12,65 @@ Supports 90° rotation on a per-item basis.
 use crunch::{pack, Rect, Item, Rotation};
 use std::iter::*;
 
-fn main() {
-    // The 15x15 container we'll be packing our items into
-    let container = Rect::of_size(15, 15);
+// The 15x15 container we'll be packing our items into
+let container = Rect::of_size(15, 15);
 
-    // Our items to pack. The user-data here are chars,
-    // but could be any copyable type
-    let items = [
-        Item::new(&'A', 2, 9, Rotation::Allowed),
-        Item::new(&'B', 3, 8, Rotation::Allowed),
-        Item::new(&'C', 4, 7, Rotation::Allowed),
-        Item::new(&'D', 5, 6, Rotation::Allowed),
-        Item::new(&'E', 6, 5, Rotation::Allowed),
-        Item::new(&'F', 7, 4, Rotation::Allowed),
-        Item::new(&'G', 8, 3, Rotation::Allowed),
-        Item::new(&'H', 9, 2, Rotation::Allowed),
-    ];
+// Our items to pack. The user-data here are chars,
+// but could be any copyable type
+let items = [
+    Item::new(&'A', 2, 9, Rotation::Allowed),
+    Item::new(&'B', 3, 8, Rotation::Allowed),
+    Item::new(&'C', 4, 7, Rotation::Allowed),
+    Item::new(&'D', 5, 6, Rotation::Allowed),
+    Item::new(&'E', 6, 5, Rotation::Allowed),
+    Item::new(&'F', 7, 4, Rotation::Allowed),
+    Item::new(&'G', 8, 3, Rotation::Allowed),
+    Item::new(&'H', 9, 2, Rotation::Allowed),
+];
 
-    // Now we can try to pack all the items into this container
-    let result = pack(container, items);
-    let packed = match result {
-        Ok(all_packed) => all_packed,
-        Err(some_packed) => some_packed,
-    };
+// Now we can try to pack all the items into this container
+let result = pack(container, items);
+let packed = match result {
+    Ok(all_packed) => all_packed,
+    Err(some_packed) => some_packed,
+};
 
-    // To display the results, let's create a 15x15 grid of '.' characters
-    let mut data : Vec<char> =
-        repeat(repeat('.').take(container.w).chain(once('\n')))
-        .take(container.h)
-        .flatten()
-        .collect();
+// To display the results, let's create a 15x15 grid of '.' characters
+let mut data : Vec<char> =
+    repeat(repeat('.').take(container.w).chain(once('\n')))
+    .take(container.h)
+    .flatten()
+    .collect();
 
-    // We can iterate through each (rect, data) pair that was packed
-    for item in &packed {
-        for x in item.rect.x..item.rect.right() {
-            for y in item.rect.y..item.rect.bottom() {
-                data[y * (container.w + 1) + x] = *item.data;
-            }
+// We can iterate through each (rect, data) pair that was packed
+for item in &packed {
+    for x in item.rect.x..item.rect.right() {
+        for y in item.rect.y..item.rect.bottom() {
+            data[y * (container.w + 1) + x] = *item.data;
         }
     }
-
-    // The items packed very efficiently, using 90% of the 15x15
-    // container's space. You'll notice that some ('H', for example)
-    // were able to rotate to fit.
-    println!("{}", String::from_iter(data));
-
-    // EEEEEEDDDDDDBBB
-    // EEEEEEDDDDDDBBB
-    // EEEEEEDDDDDDBBB
-    // EEEEEEDDDDDDBBB
-    // EEEEEEDDDDDDBBB
-    // FFFFCCCCHHAABBB
-    // FFFFCCCCHHAABBB
-    // FFFFCCCCHHAABBB
-    // FFFFCCCCHHAA...
-    // FFFFCCCCHHAA...
-    // FFFFCCCCHHAA...
-    // FFFFCCCCHHAA...
-    // GGGGGGGGHHAA...
-    // GGGGGGGGHHAA...
-    // GGGGGGGG.......
 }
+
+// The items packed very efficiently, using 90% of the 15x15
+// container's space. You'll notice that some ('H', for example)
+// were able to rotate to fit.
+println!("{}", String::from_iter(data));
+
+// EEEEEEDDDDDDBBB
+// EEEEEEDDDDDDBBB
+// EEEEEEDDDDDDBBB
+// EEEEEEDDDDDDBBB
+// EEEEEEDDDDDDBBB
+// FFFFCCCCHHAABBB
+// FFFFCCCCHHAABBB
+// FFFFCCCCHHAABBB
+// FFFFCCCCHHAA...
+// FFFFCCCCHHAA...
+// FFFFCCCCHHAA...
+// FFFFCCCCHHAA...
+// GGGGGGGGHHAA...
+// GGGGGGGGHHAA...
+// GGGGGGGG.......
 ```
 
 If you are packing textures, you can also use the `pack_into_po2()` helper
