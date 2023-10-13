@@ -1,7 +1,7 @@
 use crate::Rect;
 
 /// Rotation setting for packing rectangles.
-#[derive(Copy, Clone, PartialEq)]
+#[derive(Debug, Copy, Clone, PartialEq)]
 pub enum Rotation {
     /// The item may not be rotated.
     None,
@@ -11,7 +11,6 @@ pub enum Rotation {
 }
 
 /// An item to be packed by `Packer`.
-#[derive(Clone)]
 pub struct Item<T> {
     /// Data associated with the item (for example, an ID or a
     /// reference to an image).
@@ -49,7 +48,7 @@ impl<T> Item<T> {
 }
 
 /// A container of packed items.
-pub struct PackedItems<T> {
+pub struct PackedItems<'a, T: 'a> {
     /// The width of the container.
     pub w: usize,
 
@@ -57,13 +56,13 @@ pub struct PackedItems<T> {
     pub h: usize,
 
     /// The items packed into the container.
-    pub items: Vec<PackedItem<T>>,
+    pub items: Vec<PackedItem<'a, T>>,
 }
 
 /// An item that has been packed into a container.
-pub struct PackedItem<T> {
+pub struct PackedItem<'a, T: 'a> {
     /// The data associated with the item.
-    pub data: T,
+    pub data: &'a T,
 
     /// The position where the item was packed.
     ///

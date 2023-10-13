@@ -18,14 +18,14 @@ fn main() {
     // Our items to pack. The user-data here are chars,
     // but could be any copyable type
     let items = [
-        Item::new('A', 2, 9, Rotation::Allowed),
-        Item::new('B', 3, 8, Rotation::Allowed),
-        Item::new('C', 4, 7, Rotation::Allowed),
-        Item::new('D', 5, 6, Rotation::Allowed),
-        Item::new('E', 6, 5, Rotation::Allowed),
-        Item::new('F', 7, 4, Rotation::Allowed),
-        Item::new('G', 8, 3, Rotation::Allowed),
-        Item::new('H', 9, 2, Rotation::Allowed),
+        Item::new(&'A', 2, 9, Rotation::Allowed),
+        Item::new(&'B', 3, 8, Rotation::Allowed),
+        Item::new(&'C', 4, 7, Rotation::Allowed),
+        Item::new(&'D', 5, 6, Rotation::Allowed),
+        Item::new(&'E', 6, 5, Rotation::Allowed),
+        Item::new(&'F', 7, 4, Rotation::Allowed),
+        Item::new(&'G', 8, 3, Rotation::Allowed),
+        Item::new(&'H', 9, 2, Rotation::Allowed),
     ];
 
     // Now we can try to pack all the items into this container
