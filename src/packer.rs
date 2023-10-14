@@ -44,12 +44,10 @@ use std::iter::*;
 ///     }
 /// }
 /// ```
-pub fn pack<'a, T, I>(
-    into_rect: Rect,
-    items: I,
-) -> Result<Vec<PackedItem<'a, T>>, Vec<PackedItem<'a, T>>>
+pub fn pack<T, I>(into_rect: Rect, items: I) -> Result<Vec<PackedItem<T>>, Vec<PackedItem<T>>>
 where
-    I: IntoIterator<Item = Item<&'a T>>,
+    T: Clone,
+    I: IntoIterator<Item = Item<T>>,
 {
     let mut packer = Packer::with_items(items);
     packer.pack(into_rect)
@@ -59,28 +57,29 @@ where
 /// it possibly can, while not exceeding the provided `max_size`.
 ///
 /// On success, returns the size of the container (a power of 2) and the packed items.
-pub fn pack_into_po2<'a, T: 'a, I>(max_size: usize, items: I) -> Option<PackedItems<'a, T>>
+pub fn pack_into_po2<T, I>(max_size: usize, items: I) -> Option<PackedItems<T>>
 where
-    I: IntoIterator<Item = Item<&'a T>>,
+    T: Clone,
+    I: IntoIterator<Item = Item<T>>,
 {
     Packer::with_items(items).pack_into_po2(max_size)
 }
 
 /// A packer for items of type `Item<T>`.
-pub struct Packer<'a, T> {
-    items_to_pack: Vec<Item<&'a T>>,
+pub struct Packer<T> {
+    items_to_pack: Vec<Item<T>>,
     nodes: Vec<Node>,
     indices: Vec<usize>,
 }
 
-impl<'a, T: 'a> Default for Packer<'a, T> {
+impl<T: Clone> Default for Packer<T> {
     /// Default packer, equivalent to `Packer::new()`.
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl<'a, T: 'a> Packer<'a, T> {
+impl<T: Clone> Packer<T> {
     /// Create a new, empty packer.
     pub const fn new() -> Self {
         Self {
@@ -100,7 +99,7 @@ impl<'a, T: 'a> Packer<'a, T> {
     }
 
     /// Create a packer initialized with the collection of `items`.
-    pub fn with_items<I: IntoIterator<Item = Item<&'a T>>>(items: I) -> Self {
+    pub fn with_items<I: IntoIterator<Item = Item<T>>>(items: I) -> Self {
         Self {
             items_to_pack: items.into_iter().collect(),
             nodes: Vec::new(),
@@ -114,13 +113,13 @@ impl<'a, T: 'a> Packer<'a, T> {
     }
 
     #[inline]
-    pub fn push(&mut self, item: Item<&'a T>) -> &mut Self {
+    pub fn push(&mut self, item: Item<T>) -> &mut Self {
         self.items_to_pack.push(item);
         self
     }
 
     #[inline]
-    pub fn extend<I: IntoIterator<Item = Item<&'a T>>>(&mut self, items: I) -> &mut Self {
+    pub fn extend<I: IntoIterator<Item = Item<T>>>(&mut self, items: I) -> &mut Self {
         self.items_to_pack.extend(items);
         self
     }
@@ -209,10 +208,7 @@ impl<'a, T: 'a> Packer<'a, T> {
     /// If you want to attempt to pack the same item list into several different
     /// `into_rect`, it is valid to call this function multiple times on the same
     /// `Packer`, and it will re-use its intermediary data structures.
-    pub fn pack(
-        &mut self,
-        into_rect: Rect,
-    ) -> Result<Vec<PackedItem<'a, T>>, Vec<PackedItem<'a, T>>> {
+    pub fn pack(&mut self, into_rect: Rect) -> Result<Vec<PackedItem<T>>, Vec<PackedItem<T>>> {
         // start with one node that is the full size of the rect
         // reserve a descent amount of room in the initial nodes vec
         self.nodes.clear();
@@ -273,7 +269,7 @@ impl<'a, T: 'a> Packer<'a, T> {
 
             // add the item to the successfully packed list
             packed.push(PackedItem {
-                data: item.data,
+                data: item.data.clone(),
                 rect,
             });
         }
@@ -285,7 +281,7 @@ impl<'a, T: 'a> Packer<'a, T> {
     /// it possibly can while not exceeding the provided `max_size`.
     ///
     /// On success, returns the size of the container (a power of 2) and the packed items.
-    pub fn pack_into_po2(&mut self, max_size: usize) -> Option<PackedItems<'a, T>> {
+    pub fn pack_into_po2(&mut self, max_size: usize) -> Option<PackedItems<T>> {
         let min_area = self.items_to_pack.iter().map(|i| i.w * i.h).sum();
 
         let mut size = 2;

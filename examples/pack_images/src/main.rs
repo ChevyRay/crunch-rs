@@ -1,4 +1,3 @@
-extern crate image;
 use crunch::{Item, PackedItem, PackedItems, Rotation};
 use image::{GenericImage, Rgba, RgbaImage};
 

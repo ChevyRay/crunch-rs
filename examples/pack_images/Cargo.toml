@@ -2,7 +2,7 @@
 name = "pack_images"
 version = "0.1.0"
 authors = ["Chevy Ray Johnston <happytrash@gmail.com>"]
-edition = "2018"
+edition = "2021"
 
 [dependencies]
 crunch = { path = "../.." }
