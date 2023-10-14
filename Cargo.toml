@@ -11,3 +11,11 @@ keywords = ["rectangle", "rect", "packer", "sprite", "atlas"]
 categories = ["algorithms", "game-development", "graphics"]
 
 [dependencies]
+
+[dev-dependencies]
+criterion = "0.5"
+image = { version = "0.24.7", default-features = false, features = ["png"] }
+
+[[bench]]
+name = "benchmark"
+harness = false

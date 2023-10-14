@@ -10,7 +10,7 @@ use std::iter::*;
 /// Shorthand for:
 /// ```
 /// # use crunch::{Rect, Packer, Item};
-/// # let items: Vec<Item<&char>> = Vec::new();
+/// # let items: Vec<Item<char>> = Vec::new();
 /// # let into_rect = Rect::of_size(1024, 1024);
 /// let mut packer = Packer::with_items(items);
 /// packer.pack(into_rect);
@@ -21,14 +21,14 @@ use std::iter::*;
 /// # use crunch::{Rect, Item, Rotation, pack, PackedItems};
 /// let rect = Rect::of_size(15, 15);
 /// let items = vec![
-///     Item::new(&'A', 2, 9, Rotation::Allowed),
-///     Item::new(&'B', 3, 8, Rotation::Allowed),
-///     Item::new(&'C', 4, 7, Rotation::Allowed),
-///     Item::new(&'D', 5, 6, Rotation::Allowed),
-///     Item::new(&'E', 6, 5, Rotation::Allowed),
-///     Item::new(&'F', 7, 4, Rotation::Allowed),
-///     Item::new(&'G', 8, 3, Rotation::Allowed),
-///     Item::new(&'H', 9, 2, Rotation::Allowed),
+///     Item::new('A', 2, 9, Rotation::Allowed),
+///     Item::new('B', 3, 8, Rotation::Allowed),
+///     Item::new('C', 4, 7, Rotation::Allowed),
+///     Item::new('D', 5, 6, Rotation::Allowed),
+///     Item::new('E', 6, 5, Rotation::Allowed),
+///     Item::new('F', 7, 4, Rotation::Allowed),
+///     Item::new('G', 8, 3, Rotation::Allowed),
+///     Item::new('H', 9, 2, Rotation::Allowed),
 /// ];
 ///
 /// let packed = match pack(rect, items) {
@@ -72,14 +72,7 @@ pub struct Packer<T> {
     indices: Vec<usize>,
 }
 
-impl<T: Clone> Default for Packer<T> {
-    /// Default packer, equivalent to `Packer::new()`.
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
-impl<T: Clone> Packer<T> {
+impl<T> Packer<T> {
     /// Create a new, empty packer.
     pub const fn new() -> Self {
         Self {
@@ -106,7 +99,16 @@ impl<T: Clone> Packer<T> {
             indices: Vec::new(),
         }
     }
+}
 
+impl<T> Default for Packer<T> {
+    /// Default packer, equivalent to `Packer::new()`.
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl<T: Clone> Packer<T> {
     pub fn clear(&mut self) -> &mut Self {
         self.items_to_pack.clear();
         self
