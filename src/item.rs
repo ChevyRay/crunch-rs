@@ -1,7 +1,7 @@
 use crate::Rect;
 
 /// Rotation setting for packing rectangles.
-#[derive(Copy, Clone, PartialEq)]
+#[derive(Debug, Copy, Clone, PartialEq)]
 pub enum Rotation {
     /// The item may not be rotated.
     None,

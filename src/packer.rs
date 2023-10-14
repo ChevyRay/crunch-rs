@@ -57,13 +57,12 @@ where
 /// it possibly can, while not exceeding the provided `max_size`.
 ///
 /// On success, returns the size of the container (a power of 2) and the packed items.
-pub fn pack_into_po2<T, I>(max_size: usize, items: I) -> Result<PackedItems<T>, ()>
+pub fn pack_into_po2<T, I>(max_size: usize, items: I) -> Option<PackedItems<T>>
 where
     T: Clone,
     I: IntoIterator<Item = Item<T>>,
 {
-    let mut packer = Packer::with_items(items);
-    packer.pack_into_po2(max_size)
+    Packer::with_items(items).pack_into_po2(max_size)
 }
 
 /// A packer for items of type `Item<T>`.
@@ -156,43 +155,39 @@ impl<T: Clone> Packer<T> {
         }
     }
 
-    //returns true if any leaf node contains the supplied rect
+    ///returns true if any leaf node contains the supplied rect
     #[inline]
-    fn leaf_contains_rect(&self, rect: &Rect, node_index: usize) -> bool {
-        let node = &self.nodes[node_index];
-        match node.rect.contains(rect) {
-            false => false,
-            true => {
-                !node.is_split
-                    || node
-                        .split
-                        .iter()
-                        .any(|&i| i > 0 && self.leaf_contains_rect(rect, i))
-            }
-        }
+    fn leaf_contains_rect(rect: &Rect, nodes: &Vec<Node>, node_index: usize) -> bool {
+        let node = &nodes[node_index];
+        node.rect.contains(rect)
+            && (!node.is_split
+                || node
+                    .split
+                    .iter()
+                    .any(|&i| i > 0 && Self::leaf_contains_rect(rect, nodes, i)))
     }
 
-    //split all nodes that overlap with this rectangle
+    ///split all nodes that overlap with this rectangle
     #[inline]
-    fn split_tree(&mut self, rect: &Rect, node_index: usize) {
+    fn split_tree(rect: &Rect, nodes: &mut Vec<Node>, node_index: usize) {
         //if the rectangle overlaps with this branch of the tree
-        if self.nodes[node_index].rect.overlaps(rect) {
+        if nodes[node_index].rect.overlaps(rect) {
             //if the node is already split, recursively split into its child nodes
-            if self.nodes[node_index].is_split {
-                let split = self.nodes[node_index].split;
-                for i in split.iter().cloned().filter(|&i| i > 0) {
-                    self.split_tree(rect, i);
+            if nodes[node_index].is_split {
+                let split = nodes[node_index].split;
+                for i in split.iter().copied().filter(|&i| i > 0) {
+                    Self::split_tree(rect, nodes, i);
                 }
             } else {
                 //split the rect into 0-4 sub-rects and make a new node out of each
-                self.nodes[node_index].is_split = true;
-                let rects = self.nodes[node_index].rect.split(rect);
-                for i in 0..rects.len() {
-                    if let Some(r) = &rects[i] {
+                nodes[node_index].is_split = true;
+                let rects = nodes[node_index].rect.split(rect);
+                for (i, r) in rects.iter().enumerate() {
+                    if let Some(r) = r {
                         //only add the child rect if no other leaf node contains it
-                        if !self.leaf_contains_rect(r, 0) {
-                            self.nodes[node_index].split[i] = self.nodes.len();
-                            self.nodes.push(Node {
+                        if !Self::leaf_contains_rect(r, nodes, 0) {
+                            nodes[node_index].split[i] = nodes.len();
+                            nodes.push(Node {
                                 rect: *r,
                                 is_split: false,
                                 split: [0; 4],
@@ -217,7 +212,7 @@ impl<T: Clone> Packer<T> {
     /// `Packer`, and it will re-use its intermediary data structures.
     pub fn pack(&mut self, into_rect: Rect) -> Result<Vec<PackedItem<T>>, Vec<PackedItem<T>>> {
         // start with one node that is the full size of the rect
-        // reserve a deccent amount of room in the initial nodes vec
+        // reserve a descent amount of room in the initial nodes vec
         self.nodes.clear();
         self.nodes.reserve(self.items_to_pack.len() * 2);
         self.nodes.push(Node {
@@ -245,7 +240,7 @@ impl<T: Clone> Packer<T> {
         // pack all items, longest sides -> shorted sides
         // for &item_index in (&self.indices).into_iter().rev() {
         for ind in 0..self.indices.len() {
-            let item = self.items_to_pack[self.indices[ind]].clone();
+            let item = &self.items_to_pack[self.indices[ind]];
 
             // find the best position to pack the item
             // if the item is rotated 90º, pack_w and pack_h will be swapped
@@ -272,13 +267,13 @@ impl<T: Clone> Packer<T> {
             let rect = Rect::new(node_x, node_y, pack_w, pack_h);
 
             // split the tree on the new item's rect to create new packing branches
-            self.split_tree(&rect, 0);
+            Self::split_tree(&rect, &mut self.nodes, 0);
 
             // add the item to the successfully packed list
             packed.push(PackedItem {
-                data: item.data,
+                data: item.data.clone(),
                 rect,
-            })
+            });
         }
 
         Ok(packed)
@@ -288,7 +283,7 @@ impl<T: Clone> Packer<T> {
     /// it possibly can while not exceeding the provided `max_size`.
     ///
     /// On success, returns the size of the container (a power of 2) and the packed items.
-    pub fn pack_into_po2(&mut self, max_size: usize) -> Result<PackedItems<T>, ()> {
+    pub fn pack_into_po2(&mut self, max_size: usize) -> Option<PackedItems<T>> {
         let min_area = self.items_to_pack.iter().map(|i| i.w * i.h).sum();
 
         let mut size = 2;
@@ -300,14 +295,14 @@ impl<T: Clone> Packer<T> {
             for (w, h) in [(size, size), (size * 2, size), (size, size * 2)] {
                 if w <= max_size && h <= max_size && w * h >= min_area {
                     if let Ok(items) = self.pack(Rect::of_size(w, h)) {
-                        return Ok(PackedItems { w, h, items });
+                        return Some(PackedItems { w, h, items });
                     }
                 }
             }
             size *= 2;
         }
 
-        Err(())
+        None
     }
 }
 
@@ -319,7 +314,7 @@ struct Node {
 }
 
 /// The packer's way of scoring how well a rect fits into another rect.
-#[derive(Copy, Clone)]
+#[derive(Debug, Copy, Clone)]
 struct Score {
     area_fit: usize,
     short_fit: usize,

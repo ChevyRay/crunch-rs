@@ -1,4 +1,3 @@
-extern crate image;
 use crunch::{Item, PackedItem, PackedItems, Rotation};
 use image::{GenericImage, Rgba, RgbaImage};
 
@@ -6,7 +5,7 @@ fn main() {
     println!("loading images...");
 
     // Load all the files into RGBA images
-    let items: [Item<RgbaImage>; 26] = [
+    let items = [
         "img/img1.png",
         "img/img2.png",
         "img/img3.png",
@@ -37,34 +36,30 @@ fn main() {
     .map(|file| {
         let img = image::open(file).unwrap().to_rgba8();
         let (w, h) = (img.width() as usize, img.height() as usize);
-        println!("\tloaded: `{}` ({} x {})", file, w, h);
+        println!("\tloaded: `{file}` ({w} x {h})");
         Item::new(img, w, h, Rotation::None)
     });
 
     println!("packing {} images...", items.len());
 
     // Try packing all the rectangles
-    match crunch::pack_into_po2(1024, items) {
-        Ok(PackedItems { w, h, items }) => {
-            println!("images packed into ({} x {}) rect", w, h);
+    let PackedItems { w, h, items } =
+        crunch::pack_into_po2(1024, items).expect("failed to pack images");
 
-            // Create a target atlas image to draw the packed images onto
-            let mut atlas = RgbaImage::from_pixel(w as u32, h as u32, Rgba([0, 0, 0, 0]));
+    println!("images packed into ({w} x {h}) rect");
 
-            // Copy all the packed images onto the target atlas
-            for PackedItem { data, rect } in items {
-                atlas
-                    .copy_from(&data, rect.x as u32, rect.y as u32)
-                    .unwrap();
-            }
+    // Create a target atlas image to draw the packed images onto
+    let mut atlas = RgbaImage::from_pixel(w as u32, h as u32, Rgba([0, 0, 0, 0]));
 
-            println!("exporting `packed.png`...");
-
-            // Export the packed atlas
-            atlas.save("packed.png").unwrap();
-        }
-        Err(_) => {
-            panic!("failed to pack images");
-        }
+    // Copy all the packed images onto the target atlas
+    for PackedItem { data, rect } in items {
+        atlas
+            .copy_from(&data, rect.x as u32, rect.y as u32)
+            .unwrap();
     }
+
+    println!("exporting `packed.png`...");
+
+    // Export the packed atlas
+    atlas.save("packed.png").unwrap();
 }
